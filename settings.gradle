@@ -1,0 +1,2 @@
+rootProject.name='Android3A_HP'
+include ':app'
