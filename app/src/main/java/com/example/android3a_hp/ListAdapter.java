@@ -11,8 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
 
-public class ListAdapter extends
-        RecyclerView.Adapter<ListAdapter.ViewHolder> {
+public class ListAdapter extends RecyclerView.Adapter<ListAdapter.ViewHolder> {
         private List<HP_personnage> values;
 
     // Provide a reference to the views for each data item
@@ -51,16 +50,15 @@ public class ListAdapter extends
 
     // Create new views (invoked by the layout manager)
     @Override
-    public ListAdapter.ViewHolder onCreateViewHolder(ViewGroup parent,
-                                                     int viewType) {
+    public ListAdapter.ViewHolder onCreateViewHolder(
+            ViewGroup parent,
+            int viewType
+    ) {
         // create a new view
-        LayoutInflater inflater = LayoutInflater.from(
-                parent.getContext());
-        View v =
-                inflater.inflate(R.layout.rowlayout, parent, false);
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        View v = inflater.inflate(R.layout.rowlayout, parent, false);
         // set the view's size, margins, paddings and layout parameters
-        ViewHolder vh = new ViewHolder(v);
-        return vh;
+        return new ViewHolder(v);
     }
 
     // Replace the contents of a view (invoked by the layout manager)
@@ -68,8 +66,9 @@ public class ListAdapter extends
     public void onBindViewHolder(ViewHolder holder, final int position) {
         // - get element from your dataset at this position
         // - replace the contents of the view with that element
-        final HP_personnage currentpersonnage = values.get(position);
-        holder.txtHeader.setText(currentpersonnage.getName());
+        final HP_personnage currentHP_personnage  = values.get(position);
+
+        holder.txtHeader.setText(currentHP_personnage.getName());
         holder.txtHeader.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -77,9 +76,9 @@ public class ListAdapter extends
             }
         });
 
-        holder.txtFooter.setText(currentpersonnage.getHouse());
-        holder.txtFooter.setText(currentpersonnage.getPatronus());
-        holder.txtFooter.setText(currentpersonnage.getUrl_image());
+        holder.txtFooter.setText(currentHP_personnage.getHouse());
+        holder.txtFooter.setText(currentHP_personnage.getPatronus());
+        holder.txtFooter.setText(currentHP_personnage.getUrl_image());
     }
 
     // Return the size of your dataset (invoked by the layout manager)

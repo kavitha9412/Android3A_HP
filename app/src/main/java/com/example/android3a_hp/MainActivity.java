@@ -1,11 +1,14 @@
 package com.example.android3a_hp;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -18,6 +21,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,22 +40,42 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ListAdapter mAdapter;
     private RecyclerView.LayoutManager layoutManager;
+    private SharedPreferences sharedPreferences;
+    private Gson gson;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //Toolbar toolbar = findViewById(R.id.toolbar);
-        //setSupportActionBar(toolbar);
+        sharedPreferences = getSharedPreferences("application_esiea",Context.MODE_PRIVATE);
 
+        gson = new GsonBuilder()
+                .setLenient()
+                .create();
 
-        makeApiCall();
+        List<HP_personnage> hp_personnageList = getDataFromCache();
+        if(hp_personnageList !=null) {
+            showList(hp_personnageList);
+        } else {
+            makeApiCall();
+        }
 
         
     }
 
-    private void showList(List<HP_personnage> HP_personnageList) {
+    private List<HP_personnage> getDataFromCache() {
+        String jsonHP_personnage = sharedPreferences.getString(Constants.KEY_HP_Personnage_LIST, null);
+
+        if (jsonHP_personnage == null) {
+            return null;
+        } else {
+        Type listType = new TypeToken<List<HP_personnage>>(){}.getType();
+        return gson.fromJson(jsonHP_personnage, listType);
+        }
+    }
+
+    private void showList(List<HP_personnage> hp_personnageList) {
         //Affichage liste
         recyclerView = (RecyclerView) findViewById(recycler_view);
         recyclerView.setHasFixedSize(true);
@@ -59,16 +83,16 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(layoutManager);
 
 
+
        // define an adapter
-        mAdapter = new ListAdapter(HP_personnageList);
+        mAdapter = new ListAdapter(hp_personnageList);
         recyclerView.setAdapter(mAdapter);
     }
 
 
     private void makeApiCall() {
-        Gson gson = new GsonBuilder()
-                .setLenient()
-                .create();
+
+
 
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
@@ -84,8 +108,9 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Call<List<HP_personnage>> call, Response<List<HP_personnage>> response) {
 
                 if(response.isSuccessful() && response.body() != null){
-                        List<HP_personnage> HP_personnageList = response.body();
-                        showList(HP_personnageList);
+                        List<HP_personnage> hp_personnageList = response.body();
+                        saveList(hp_personnageList);
+                        showList(hp_personnageList);
                 } else {
                     showError();
                 }
@@ -100,6 +125,16 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
+
+    private void saveList(List<HP_personnage> hp_personnageList) {
+        String jsonString = gson.toJson(hp_personnageList);
+        sharedPreferences
+                .edit()
+                .putString(Constants.KEY_HP_Personnage_LIST,jsonString)
+                .apply();
+        Toast.makeText(getApplicationContext(), "List Saved", Toast.LENGTH_SHORT).show();
+    }
+
 
     private void showError() {
         Toast.makeText(getApplicationContext(), "API Error", Toast.LENGTH_SHORT).show();
