@@ -4,22 +4,34 @@ import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
 import static com.example.android3a_hp.R.id.recycler_view;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final String BASE_URL = "https://raw.githubusercontent.com/kavitha9412/Android3A_HP/master/";
 
     private RecyclerView recyclerView;
     private ListAdapter mAdapter;
@@ -30,38 +42,69 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //Toolbar toolbar = findViewById(R.id.toolbar);
+        //setSupportActionBar(toolbar);
+
+
+        makeApiCall();
+
+        
+    }
+
+    private void showList(List<HP_personnage> HP_personnageList) {
+        //Affichage liste
         recyclerView = (RecyclerView) findViewById(recycler_view);
         recyclerView.setHasFixedSize(true);
-        // use a linear layout manager
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
-        List<String> input = new ArrayList<>();
-        for (int i = 0; i < 100; i++) {
-            input.add("Test" + i);
-        }// define an adapter
-        mAdapter = new ListAdapter(input);
+
+
+       // define an adapter
+        mAdapter = new ListAdapter(HP_personnageList);
         recyclerView.setAdapter(mAdapter);
-
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+    }
 
 
-        showList();
-        
-      /*  FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
+    private void makeApiCall() {
+        Gson gson = new GsonBuilder()
+                .setLenient()
+                .create();
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .build();
+
+        HpApi HpApi = retrofit.create(HpApi.class);
+
+
+        Call<List<HP_personnage>> call = HpApi.getHP_personnage();
+        call.enqueue(new Callback<List<HP_personnage>>() {
             @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+            public void onResponse(Call<List<HP_personnage>> call, Response<List<HP_personnage>> response) {
+
+                if(response.isSuccessful() && response.body() != null){
+                        List<HP_personnage> HP_personnageList = response.body();
+                        showList(HP_personnageList);
+                } else {
+                    showError();
+                }
+
             }
-        }); */
-        
+
+            @Override
+            public void onFailure(Call<List<HP_personnage>> call, Throwable t) {
+                showError();
+
+            }
+        });
+
     }
 
-    private void showList() {
-        //Affichage liste
+    private void showError() {
+        Toast.makeText(getApplicationContext(), "API Error", Toast.LENGTH_SHORT).show();
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
